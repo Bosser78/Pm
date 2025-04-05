@@ -97,21 +97,38 @@ void loop()
   }
 }
 
-// ✅ อ่านค่าฝุ่นจาก PMS3003
 bool readPMS3003(unsigned int &pm1, unsigned int &pm2_5, unsigned int &pm10)
 {
-  uint8_t buffer[32];
-  if (pms3003.available() >= 32)
+  static int index = 0;
+  static uint8_t buffer[32];
+
+  while (pms3003.available())
   {
-    pms3003.readBytes(buffer, 32);
-    if (buffer[0] == 0x42 && buffer[1] == 0x4D)
+    uint8_t byteIn = pms3003.read();
+
+    if (index == 0 && byteIn != 0x42)
+      continue; // รอ header 0x42
+    if (index == 1 && byteIn != 0x4D)
     {
+      index = 0;
+      continue;
+    } // ต้องตามด้วย 0x4D
+
+    buffer[index++] = byteIn;
+
+    // ถ้าเก็บครบ 32 ไบต์แล้ว
+    if (index == 32)
+    {
+      index = 0;
+
       pm1 = (buffer[4] << 8) | buffer[5];
       pm2_5 = (buffer[6] << 8) | buffer[7];
       pm10 = (buffer[8] << 8) | buffer[9];
+
       return true;
     }
   }
+
   return false;
 }
 

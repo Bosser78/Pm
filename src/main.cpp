@@ -38,6 +38,7 @@ void setup()
 {
   Serial.begin(115200);
   // เชื่อมต่อ Wi-Fi
+  pms3003.begin(9600, SERIAL_8N1, RXD_PMS, TXD_PMS);
   Serial.print("Connecting to Wi-Fi");
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED)
